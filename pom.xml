@@ -9,9 +9,10 @@
     <version>1.0</version>
 
     <properties>
-        <maven.compiler.source>18</maven.compiler.source>
-        <maven.compiler.target>18</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <javafx.version>21.0.1</javafx.version>
     </properties>
 
     <repositories>
@@ -23,38 +24,35 @@
     </repositories>
 
     <dependencies>
-        <!-- Apache Commons Lang -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.12.0</version>
         </dependency>
 
-        <!-- JavaFX Controls -->
+        <!-- JavaFX Controls - версия 21 для совместимости с Java 21 -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>18.0.1</version>
+            <version>${javafx.version}</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
-            <version>18.0.1</version>
+            <version>${javafx.version}</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-base</artifactId>
-            <version>18.0.1</version>
+            <version>${javafx.version}</version>
         </dependency>
 
-        <!-- Desktop Game Engine - теперь из локального репозитория -->
         <dependency>
             <groupId>com.javarush</groupId>
             <artifactId>desktop-game-engine</artifactId>
             <version>1.0</version>
         </dependency>
 
-        <!-- JUnit Jupiter Engine (test scope) -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
@@ -97,10 +95,9 @@
                 <version>3.10.1</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
+                    <release>21</release>
                 </configuration>
             </plugin>
-
-            <!-- УБРАТЬ maven-dependency-plugin - он не нужен для fat JAR -->
 
             <!-- Плагин для запуска тестов (исключаем StrangeTest) -->
             <plugin>
@@ -114,37 +111,32 @@
                 </configuration>
             </plugin>
 
-            <!-- УБРАТЬ maven-jar-plugin - он конфликтует с shade-plugin -->
-
-            <!-- Плагин для сборки fat jar с JavaFX (ИСПРАВЛЕННЫЙ) -->
+            <!-- Плагин для сборки fat jar с JavaFX -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.4.1</version>
                 <executions>
                     <execution>
-                        <!-- Важно: этот execution должен быть ДО shade -->
                         <id>create-fat-jar</id>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <!-- КРИТИЧЕСКИ ВАЖНО: создавать fat JAR вместо обычного -->
                             <shadedArtifactAttached>false</shadedArtifactAttached>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>com.javarush.games.racer.RacerGame</mainClass>
                                 </transformer>
-                                <!-- КРИТИЧЕСКИ ВАЖНО для JavaFX -->
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
                                     <excludes>
-                                        <!-- Важно: исключить module-info.class для JavaFX -->
+                                        <!-- Исключаем module-info.class для корректной работы JavaFX в fat JAR -->
                                         <exclude>module-info.class</exclude>
                                         <exclude>META-INF/*.SF</exclude>
                                         <exclude>META-INF/*.DSA</exclude>
